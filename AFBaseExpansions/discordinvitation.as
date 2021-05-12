@@ -29,7 +29,7 @@ class DiscordInvitation : AFBaseClass
 		if( DiscordInvitation::g_InvitationThink !is null )
 			g_Scheduler.RemoveTimer( DiscordInvitation::g_InvitationThink );
 
-		@DiscordInvitation::g_InvitationThink = g_Scheduler.SetInterval( "InvitationThink", ( DiscordInvitation::g_cvarTimer.GetInt() ) );
+		@DiscordInvitation::g_InvitationThink = g_Scheduler.SetInterval( "InvitationThink", DiscordInvitation::g_cvarTimer.GetInt() );
 	}
 
 	void StopEvent()
@@ -41,7 +41,7 @@ class DiscordInvitation : AFBaseClass
 	void StartEvent()
 	{
 		if( DiscordInvitation::g_InvitationThink is null )
-			@DiscordInvitation::g_InvitationThink = g_Scheduler.SetInterval( "InvitationThink", ( DiscordInvitation::g_cvarTimer.GetInt() ) );
+			@DiscordInvitation::g_InvitationThink = g_Scheduler.SetInterval( "InvitationThink", DiscordInvitation::g_cvarTimer.GetInt() );
 	}
 }
 
@@ -113,6 +113,6 @@ namespace DiscordInvitation
 		if( g_InvitationThink !is null )
 			g_Scheduler.RemoveTimer( g_InvitationThink );
 
-		@g_InvitationThink = g_Scheduler.SetInterval( "InvitationThink", ( g_cvarTimer.GetInt() ) );
+		@g_InvitationThink = g_Scheduler.SetInterval( "InvitationThink", g_cvarTimer.GetInt() );
 	}
 }
