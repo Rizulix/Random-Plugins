@@ -42,7 +42,7 @@ void ReadFile() {
 	File@ pFile = g_FileSystem.OpenFile( MUSIC_PATH, OpenFile::READ );
 
 	if( pFile is null || !pFile.IsOpen() ) {
-		g_Game.AlertMessage( at_console, "ATTENTION: \"" + MUSIC_PATH + "\" failed to open or file not exist, the OST of the game will be used instead." + "\n" );
+		g_Game.AlertMessage( at_console, "ATTENTION: \"%1\" failed to open or file not exist, the OST of the game will be used instead.\n", MUSIC_PATH );
 		return;
 	} while( !pFile.EOFReached() ) {
 		string szLine;
