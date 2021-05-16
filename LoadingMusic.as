@@ -72,10 +72,10 @@ HookReturnCode ClientConnected( edict_t@ pEdict, const string& in, const string&
 
 	if( MUSIC_LIST.length() != 0 ) {
 		uint i = RandomTrack( MUSIC_LIST.length() );
-		ClientCommand( pEdict, "mp3 loop \"sound/" + MUSIC_LIST[i] + "\"" );
+		ClientCommand( pEdict, ";mp3 loop \"sound/" + MUSIC_LIST[i] + "\";" );
 	} else {
 		uint i = RandomTrack( MEDIA_LIST.length() );
-		ClientCommand( pEdict, "mp3 loop \"media/" + MEDIA_LIST[i] + "\"" );
+		ClientCommand( pEdict, ";mp3 loop \"media/" + MEDIA_LIST[i] + "\";" );
 	}
 
 	return HOOK_CONTINUE;
