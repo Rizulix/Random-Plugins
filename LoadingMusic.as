@@ -65,7 +65,7 @@ void ClientCommand( CBasePlayer@ pPlayer, const string& in szCommand ) {
 	netmsg.End();
 }
 
-HookReturnCode ClientConnected( edict_t@ pEdict, const string& in szPlayerName, const string& in szIPAddress, bool& out bDisallowJoin, string& out szRejectReason )
+HookReturnCode ClientConnected( edict_t@ pEdict, const string& in, const string& in, bool& out, string& out )
 {
 	if( pEdict is null )
 		return HOOK_CONTINUE;
