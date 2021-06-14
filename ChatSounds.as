@@ -57,7 +57,7 @@ void PluginInit()
 
 void MapInit()
 {
-	g_ChatSounds.Initialize( szFilePath );
+	g_ChatSounds.Initialize();
 }
 
 void ClientCommand( const CCommand@ args )
@@ -129,7 +129,7 @@ final class CChatSounds
 		return cast<CChatSounds@>( m_saveData[szAuthId] );
 	}
 
-	private void AddSounds( string szFilePath )
+	private void AddSounds()
 	{
 		File@ pFile = g_FileSystem.OpenFile( szFilePath, OpenFile::READ );
 
@@ -156,20 +156,20 @@ final class CChatSounds
 		m_soundKey.sortAsc();
 	}
 
-	private void LoadSounds( string szFilePath )
+	private void LoadSounds()
 	{
-		AddSounds( szFilePath );
+		AddSounds();
 	
 		for( uint i = 0; i < m_soundKey.length(); ++i )
 			g_Game.PrecacheGeneric( "sound/" + string(m_listSound[m_soundKey[i]]) );
 	}
 
-	void Initialize( string szFilePath )
+	void Initialize()
 	{
 		m_listSound.deleteAll();
 		m_flChatSoundsDelay = g_BaseDelay.GetFloat();
 
-		LoadSounds( szFilePath );
+		LoadSounds();
 
 		for( uint i = 0; i < m_sprite.length(); ++i )
 			g_Game.PrecacheModel( m_sprite[i] );
