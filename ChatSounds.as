@@ -404,7 +404,7 @@ final class CChatSounds
 		else
 		{
 			g_PlayerFuncs.ClientPrint( pPlayer, bConsole ? HUD_PRINTCONSOLE : HUD_PRINTTALK, "[ChatSounds] You must write a target!\n" );
-				return;
+			return;
 		}
 	}
 
