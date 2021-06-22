@@ -146,7 +146,7 @@ final class CChatSounds
 
 		if( pFile is null || !pFile.IsOpen() )
 		{
-			g_Game.AlertMessage( at_console, "ATTENTION: \"%1\" failed to open or file not exist\n", szFilePath );
+			g_Game.AlertMessage( at_console, "[ChatSounds] ATTENTION: \"%1\" failed to open or file not exist\n", szFilePath );
 			return;
 		}
 		while( !pFile.EOFReached() )
