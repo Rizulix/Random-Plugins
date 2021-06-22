@@ -53,6 +53,17 @@ void PluginInit()
 		@g_BaseDelay = CCVar( "defaultdelay", 3.3f, "This will be the default basedelay", ConCommandFlag::AdminOnly ); // as_command cs.defaultdelay
 		@g_DelayVariance = CCVar( "delayvariance", 0.6f, "Adds or subtracts time to the basedelay when joining or leaving the server respectively", ConCommandFlag::AdminOnly ); // as_command cs.delayvariance
 	}
+
+	g_ChatSounds.ReadSounds();
+}
+
+void PluginExit()
+{
+	g_Hooks.RemoveHook( Hooks::Player::ClientSay, @ClientSay );
+	g_Hooks.RemoveHook( Hooks::Player::ClientPutInServer, @ClientPutInServer );
+	g_Hooks.RemoveHook( Hooks::Player::ClientDisconnect, @ClientDisconnect );
+
+	g_ChatSounds.OnExit();
 }
 
 void MapInit()
@@ -129,7 +140,7 @@ final class CChatSounds
 		return cast<CChatSounds@>( m_saveData[szAuthId] );
 	}
 
-	private void AddSounds()
+	void ReadSounds()
 	{
 		File@ pFile = g_FileSystem.OpenFile( szFilePath, OpenFile::READ );
 
@@ -158,7 +169,7 @@ final class CChatSounds
 
 	private void LoadSounds()
 	{
-		AddSounds();
+		ReadSounds();
 	
 		for( uint i = 0; i < m_soundKey.length(); ++i )
 			g_Game.PrecacheGeneric( "sound/" + string(m_listSound[m_soundKey[i]]) );
@@ -173,6 +184,14 @@ final class CChatSounds
 
 		for( uint i = 0; i < m_sprite.length(); ++i )
 			g_Game.PrecacheModel( m_sprite[i] );
+	}
+
+	void OnExit()
+	{
+		m_saveData.deleteAll();
+		m_listSound.deleteAll();
+
+		m_soundKey.removeRange( 0, m_soundKey.length() );
 	}
 
 	void Listsounds( CBasePlayer@ pPlayer )
@@ -469,13 +488,13 @@ final class CChatSounds
 				return HOOK_HANDLED;
 			}
 		}
-		else if( args.ArgC() == 2 && ( args.Arg(0).ToLowercase() == ".csvolume" ) )
+		else if( args.ArgC() < 3 && ( args.Arg(0).ToLowercase() == ".csvolume" ) )
 		{
 			pParams.ShouldHide = true;
 			SetVolume( pPlayer, args, false );
 			return HOOK_HANDLED;
 		}
-		else if( args.ArgC() == 2 && ( args.Arg(0).ToLowercase() == ".cspitch" ) )
+		else if( args.ArgC() < 3 && ( args.Arg(0).ToLowercase() == ".cspitch" ) )
 		{
 			pParams.ShouldHide = true;
 			SetPitch( pPlayer, args, false );
