@@ -353,7 +353,15 @@ final class CChatRoles
 					if( pTarget.Classify() != iClass )
 						continue;
 
-					g_PlayerFuncs.SayText( pTarget, (bItsMe ? "* (TEAM) [" : "(TEAM) [") + string(m_playerRoles[auth_id(pPlayer)]) + "] " + szNetname + (bItsMe ? " " : ": ") + szMessage + "\n" );
+					if( bItsEx )
+					{
+						if( string(m_playerRoles[auth_id(pPlayer)]) != string(m_playerRoles[auth_id(pTarget)]) )
+							continue;
+
+						g_PlayerFuncs.SayText( pTarget, "(TEAM) [" + string(m_playerRoles[auth_id(pPlayer)]) + "] " + szNetname + ": " + szMessage + "\n" );
+					}
+					else
+						g_PlayerFuncs.SayText( pTarget, (bItsMe ? "* (TEAM) [" : "(TEAM) [") + string(m_playerRoles[auth_id(pPlayer)]) + "] " + szNetname + (bItsMe ? " " : ": ") + szMessage + "\n" );
 				}
 			}
 			else
@@ -369,7 +377,7 @@ final class CChatRoles
 						if( string(m_playerRoles[auth_id(pPlayer)]) != string(m_playerRoles[auth_id(pTarget)]) )
 							continue;
 
-						g_PlayerFuncs.SayText( pTarget, (bItsMe ? "* (TEAM) [" : "(TEAM) [") + string(m_playerRoles[auth_id(pPlayer)]) + "] " + szNetname + (bItsMe ? " " : ": ") + szMessage + "\n" );
+						g_PlayerFuncs.SayText( pTarget, "(TEAM) [" + string(m_playerRoles[auth_id(pPlayer)]) + "] " + szNetname + ": " + szMessage + "\n" );
 					}
 				}
 				else
@@ -389,7 +397,7 @@ final class CChatRoles
 					if( string(m_playerRoles[auth_id(pPlayer)]) != string(m_playerRoles[auth_id(pTarget)]) )
 						continue;
 
-					g_PlayerFuncs.SayText( pTarget, (bItsMe ? "* [" : "[") + string(m_playerRoles[auth_id(pPlayer)]) + "] " + szNetname + (bItsMe ? " " : ": ") + szMessage + "\n" );
+					g_PlayerFuncs.SayText( pTarget, "[" + string(m_playerRoles[auth_id(pPlayer)]) + "] " + szNetname + ": " + szMessage + "\n" );
 				}
 			}
 			else
