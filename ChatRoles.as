@@ -3,7 +3,7 @@
 
 ChatRoles::CChatRoles@ g_ChatRoles = @ChatRoles::CChatRoles();
 
-const string szFilePath = "scripts/plugins/store/ChatRoles.txt";
+const string szFilePath = "scripts/plugins/store/ChatRoleo.txt";
 
 CClientCommand _listroles( "listroles", "List all roles", @ClientCommand );
 CClientCommand _crhelp( "crhelp", "Shows you the available commands", @ClientCommand );
@@ -328,8 +328,28 @@ final class CChatRoles
 		bool bItsMe = parsed[0] == "/me";
 		bool bItsEx = parsed[0] == ">|";
 
-		if( bItsMe && parsed.length() >= 2 ) szMessage.Replace("/me ","");
-		if( bItsEx && parsed.length() >= 2 ) szMessage.Replace(">| ","");
+		if( bItsMe && parsed.length() >= 2 )
+		{
+			szMessage = "";
+			for( uint i = 1; i < parsed.length(); i++ )
+			{
+				if( i < parsed.length()-1 )
+					szMessage += parsed[i] + " ";
+				else
+					szMessage += parsed[i];
+			}
+		}
+		if( bItsEx && parsed.length() >= 2 )
+		{
+			szMessage = "";
+			for( uint i = 1; i < parsed.length(); i++ )
+			{
+				if( i < parsed.length()-1 )
+					szMessage += parsed[i] + " ";
+				else
+					szMessage += parsed[i];
+			}
+		}
 
 		if( sayTipe == CLIENTSAY_SAYTEAM )
 		{
