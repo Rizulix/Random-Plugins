@@ -328,18 +328,7 @@ final class CChatRoles
 		bool bItsMe = parsed[0] == "/me";
 		bool bItsEx = parsed[0] == ">|";
 
-		if( bItsMe && parsed.length() >= 2 )
-		{
-			szMessage = "";
-			for( uint i = 1; i < parsed.length(); i++ )
-			{
-				if( i < parsed.length()-1 )
-					szMessage += parsed[i] + " ";
-				else
-					szMessage += parsed[i];
-			}
-		}
-		if( bItsEx && parsed.length() >= 2 )
+		if( ( bItsMe || bItsEx ) && parsed.length() >= 2 )
 		{
 			szMessage = "";
 			for( uint i = 1; i < parsed.length(); i++ )
