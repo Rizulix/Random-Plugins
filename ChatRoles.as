@@ -3,7 +3,7 @@
 
 ChatRoles::CChatRoles@ g_ChatRoles = @ChatRoles::CChatRoles();
 
-const string szFilePath = "scripts/plugins/store/ChatRoleo.txt";
+const string szFilePath = "scripts/plugins/store/ChatRoles.txt";
 
 CClientCommand _listroles( "listroles", "List all roles", @ClientCommand );
 CClientCommand _crhelp( "crhelp", "Shows you the available commands", @ClientCommand );
