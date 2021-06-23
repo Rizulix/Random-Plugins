@@ -207,7 +207,7 @@ final class CChatSounds
 			{
 				szMessage.Resize( szMessage.Length()-2 );
 				g_PlayerFuncs.ClientPrint( pPlayer, HUD_PRINTCONSOLE, szMessage );
-				g_PlayerFuncs.ClientPrint( pPlayer, HUD_PRINTCONSOLE, "\n");
+				g_PlayerFuncs.ClientPrint( pPlayer, HUD_PRINTCONSOLE, "\n" );
 				szMessage = "";
 			}
 		}
@@ -395,7 +395,7 @@ final class CChatSounds
 
 			if( pTarget is null || !pTarget.IsConnected() )
 			{
-				g_PlayerFuncs.SayText( pPlayer, "[ChatSounds] Invalid target id!\n" );
+				g_PlayerFuncs.ClientPrint( pPlayer, bConsole ? HUD_PRINTCONSOLE : HUD_PRINTTALK, "[ChatSounds] Invalid target id!\n" );
 				return;
 			}
 			SetForceMute( pPlayer, pTarget, args, bConsole );
@@ -415,7 +415,7 @@ final class CChatSounds
 
 			if( pTarget is null || !pTarget.IsConnected() )
 			{
-				g_PlayerFuncs.SayText( pPlayer, "[ChatSounds] Invalid target name!\n" );
+				g_PlayerFuncs.ClientPrint( pPlayer, bConsole ? HUD_PRINTCONSOLE : HUD_PRINTTALK, "[ChatSounds] Invalid target name!\n" );
 				return;
 			}
 			SetForceMute( pPlayer, pTarget, args, bConsole );
