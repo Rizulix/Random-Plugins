@@ -1,0 +1,4 @@
+// Format:
+// SteamID Role
+// Example:
+// STEAM_0:1:129755727 Member
