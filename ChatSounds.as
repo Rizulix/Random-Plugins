@@ -178,16 +178,7 @@ final class CChatSounds
 
 	private void GetDelay( float& out flChatSoundsDelay )
 	{
-		uint uiPlayerNum = 0;
-		for( int i = 1; i <= g_Engine.maxClients; i++ )
-		{
-			CBasePlayer@ pPlayer = g_PlayerFuncs.FindPlayerByIndex( i );
-			if( pPlayer is null || !pPlayer.IsConnected() )
-				continue;
-
-			uiPlayerNum++;
-		}
-		flChatSoundsDelay = g_BaseDelay.GetFloat() + (uiPlayerNum * g_DelayVariance.GetFloat());
+		flChatSoundsDelay = g_BaseDelay.GetFloat() + (g_PlayerFuncs.GetNumPlayers() * g_DelayVariance.GetFloat());
 	}
 
 	void ClientCommand( const CCommand@ args )
@@ -271,7 +262,7 @@ final class CChatSounds
 		}
 
 		ClientCommand( pPlayer, "stopsound" );
-		g_PlayerFuncs.ClientPrint( pPlayer, bConsole ? HUD_PRINTCONSOLE : HUD_PRINTTALK, "[ChatSounds] Stopping ChatSounds in playback\n" );
+		g_PlayerFuncs.ClientPrint( pPlayer, bConsole ? HUD_PRINTCONSOLE : HUD_PRINTTALK, "[ChatSounds] Stopping current ChatSounds in playback\n" );
 	}
 
 	private void SetVolume( CBasePlayer@ pPlayer, const CCommand@ args, bool bConsole )
