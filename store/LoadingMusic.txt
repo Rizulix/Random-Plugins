@@ -1,4 +1,5 @@
 // Format:
-// Filepath (only mp3 files)
+// SongName Filepath(only mp3) Duration(min:sec)
+// IMPORTANT: Make sure the last two words are the filepath and duration
 // Example:
-// bridge/chill.mp3
+// So Chill bridge/chill.mp3 0:31
