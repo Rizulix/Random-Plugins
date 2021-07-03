@@ -261,7 +261,7 @@ final class CChatSounds
 			return;
 		}
 
-		ClientCommand( pPlayer, "stopsound" );
+		ClientCommand( pPlayer, ";stopsound;" );
 		g_PlayerFuncs.ClientPrint( pPlayer, bConsole ? HUD_PRINTCONSOLE : HUD_PRINTTALK, "[ChatSounds] Stopping current ChatSounds in playback\n" );
 	}
 
