@@ -190,19 +190,14 @@ final class CLoadingMusic
 			if( szLine.SubString(0,1) == "#" || szLine.SubString(0,2) == "//" || szLine.IsEmpty() )
 				continue;
 
-			array<string> parsed = szLine.Split(" ");
+			array<string> parsed = szLine.Split("|");
 			if( parsed.length() < 3 )
 				continue;
 
-			szLine = "";
-			for( uint i = 0; i < parsed.length()-2; i++ )
-			{
-				if( i < parsed.length()-3 )
-					szLine += parsed[i] + " ";
-				else
-					szLine += parsed[i];
-			}
-			AddTrack( CTrack( szLine, parsed[parsed.length()-2], parsed[parsed.length()-1] ) );
+			for( uint i = 0; i < parsed.length(); i++ )
+				parsed[i].Trim();
+
+			AddTrack( CTrack( parsed[0], parsed[1], parsed[2] ) );
 		}
 		pFile.Close();
 	}
