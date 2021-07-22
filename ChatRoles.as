@@ -7,15 +7,16 @@
 		"name" "ChatRoles"
 		"script" "ChatRoles"
 	}
+	* NOTE: I recommend that this plugin be the last one in the archive "default_plugins.txt" to avoid problems with chat commands from other plugins.
 ***/
 
 ChatRoles::CChatRoles@ g_ChatRoles = @ChatRoles::CChatRoles();
 
 const string szFilePath = "scripts/plugins/store/ChatRoles.txt";
 
-CClientCommand _crhelp( "crhelp", "Shows you the available commands", @ClientCommandCallback( @g_ChatRoles.ClientCommand ) );
-CClientCommand _listroles( "listroles", "List all ChatRoles", @ClientCommandCallback( @g_ChatRoles.ClientCommand ) );
-CClientCommand _setrole( "setrole", "Set the new role on <target> (steamid or nickname)", @ClientCommandCallback( @g_ChatRoles.ClientCommand ), ConCommandFlag::AdminOnly );
+CClientCommand _crhelp( "crhelp", "Shows you the available commands", ClientCommandCallback( g_ChatRoles.ClientCommand ) );
+CClientCommand _listroles( "listroles", "List all ChatRoles", ClientCommandCallback( g_ChatRoles.ClientCommand ) );
+CClientCommand _setrole( "setrole", "Set the new role on <target> (steamid or nickname)", ClientCommandCallback( g_ChatRoles.ClientCommand ), ConCommandFlag::AdminOnly );
 
 void PluginInit()
 {
@@ -45,16 +46,20 @@ final class CChatRoles
 
 	private array<string> m_listRoles;
 
+	private uint8 SAY_TEAM = 1 << 0;
+	private uint8 SAY_ME = 1 << 1;
+	private uint8 SAY_SPECIAL = 1 << 2;
+
 	void OnInit()
 	{
-		g_Hooks.RegisterHook( Hooks::Player::ClientSay, @ClientSayHook( this.ClientSay ) );
+		g_Hooks.RegisterHook( Hooks::Player::ClientSay, ClientSayHook( this.ClientSay ) );
 
 		ReadRoles();
 	}
 
 	void OnExit()
 	{
-		g_Hooks.RemoveHook( Hooks::Player::ClientSay, @ClientSayHook( this.ClientSay ) );
+		g_Hooks.RemoveHook( Hooks::Player::ClientSay, ClientSayHook( this.ClientSay ) );
 
 		m_playerRoles.deleteAll();
 		m_totalNumber.deleteAll();
@@ -167,11 +172,11 @@ final class CChatRoles
 	private void UpdateRole( CBasePlayer@ pPlayer, CBasePlayer@ pTarget, const CCommand@ args, bool bConsole )
 	{
 		File@ pFile;
+		array<string> save;
 		bool bUpdated = false, bReaded = false;
 		string szNewRole = args.Arg(2), szChecker = szNewRole;
 		string szAuthId = auth_id(pTarget), szNetname = pTarget.pev.netname;
 		bool bRemove = szChecker.ToLowercase() == "none";
-		array<string> m_save;
 
 		@pFile = g_FileSystem.OpenFile( szFilePath, OpenFile::READ );
 		if( pFile is null || !pFile.IsOpen() )
@@ -199,7 +204,7 @@ final class CChatRoles
 					{
 						g_PlayerFuncs.ClientPrint( pPlayer, bConsole ? HUD_PRINTCONSOLE : HUD_PRINTTALK, "[ChatRoles] Player \"" + szNetname + "\" did not have role!\n" );
 					}
-					m_save.insertLast( szAuthId );
+					save.insertLast( szAuthId );
 					bUpdated = true;
 					szNewRole = "";
 					continue;
@@ -219,12 +224,12 @@ final class CChatRoles
 						g_PlayerFuncs.ClientPrint( pPlayer, bConsole ? HUD_PRINTCONSOLE : HUD_PRINTTALK, "[ChatRoles] Adding \"" + szNewRole + "\" for \"" + szNetname + "\"\n" );
 						UpdateRoleList( szNewRole );
 					}
-					m_save.insertLast( szAuthId + " " + szNewRole );
+					save.insertLast( szAuthId + " " + szNewRole );
 					bUpdated = true;
 					continue;
 				}
 			}
-			m_save.insertLast( szLine );
+			save.insertLast( szLine );
 		}
 		bReaded = true;
 		pFile.Close();
@@ -243,19 +248,19 @@ final class CChatRoles
 					g_Game.AlertMessage( at_console, "[ChatRoles] ATTENTION: Creating Role \"%1\" for \"%2\". Requested by: \"%3\"\n", szNewRole, szAuthId, pPlayer.pev.netname );
 					g_PlayerFuncs.ClientPrint( pPlayer, bConsole ? HUD_PRINTCONSOLE : HUD_PRINTTALK, "[ChatRoles] Created Role \"" + szNewRole + "\" for \"" + szNetname + "\"\n" );
 					UpdateRoleList( szNewRole );
-					m_save.insertLast( szAuthId + " " + szNewRole );
+					save.insertLast( szAuthId + " " + szNewRole );
 				}
 			}
 
 			@pFile = g_FileSystem.OpenFile( szFilePath, OpenFile::WRITE );
 			if( pFile !is null && pFile.IsOpen() )
 			{
-				for( uint i = 0; i < m_save.length(); i++ )
+				for( uint i = 0; i < save.length(); i++ )
 				{
-					if( i < m_save.length()-1 )
-						pFile.Write( m_save[i] + "\n" );
+					if( i < save.length()-1 )
+						pFile.Write( save[i] + "\n" );
 					else
-						pFile.Write( m_save[i] );
+						pFile.Write( save[i] );
 				}
 				pFile.Close();
 			}
@@ -321,12 +326,11 @@ final class CChatRoles
 		}
 	}
 
-	private void SayWithRole( CBasePlayer@ pPlayer, bool b4Team, bool bItsEx, bool bItsMe, string szMessage )
+	private void SayWithRole( CBasePlayer@ pPlayer, const uint8 uiFlags, const string szMessage )
 	{
-		const string szNetname = pPlayer.pev.netname;
-		const string szTeamTag = (b4Team ? "(TEAM) [" : "[");
+		const string szTeamTag = (bit_set( uiFlags, SAY_TEAM ) ? "(TEAM) [" : "[");
 
-		if( bItsEx )
+		if( bit_set( uiFlags, SAY_SPECIAL ) )
 		{
 			for( int i = 1; i <= g_Engine.maxClients; i++ )
 			{
@@ -337,23 +341,22 @@ final class CChatRoles
 				if( string(m_playerRoles[auth_id(pPlayer)]) != string(m_playerRoles[auth_id(pTarget)]) )
 					continue;
 
-				g_PlayerFuncs.SayText( pTarget, ">> " + szTeamTag + string(m_playerRoles[auth_id(pPlayer)]) + "] " + szNetname + ": " + szMessage + "\n" );
+				g_PlayerFuncs.SayText( pTarget, ">> " + szTeamTag + string(m_playerRoles[auth_id(pPlayer)]) + "] " + pPlayer.pev.netname + ": " + szMessage + "\n" );
 			}
 		}
 		else
-			g_PlayerFuncs.SayTextAll( pPlayer, (bItsMe ? "* " : "") + szTeamTag + string(m_playerRoles[auth_id(pPlayer)]) + "] " + szNetname + (bItsMe ? " " : ": ") + szMessage + "\n" );
+			g_PlayerFuncs.SayTextAll( pPlayer, (bit_set( uiFlags, SAY_ME ) ? "* " : "") + szTeamTag + string(m_playerRoles[auth_id(pPlayer)]) + "] " + pPlayer.pev.netname + (bit_set( uiFlags, SAY_ME ) ? " " : ": ") + szMessage + "\n" );
 	}
 
 	private void SayWithRole( CBasePlayer@ pPlayer, ClientSayType sayTipe, string szMessage )
 	{
-		const string szNetname = pPlayer.pev.netname;
-		const int iClass = pPlayer.Classify();
+		uint8 uiFlags = 0;
 		array<string> parsed = szMessage.Split(" ");
-		bool b4Team = sayTipe == CLIENTSAY_SAYTEAM;
-		bool bItsMe = parsed[0] == "/me" && parsed.length() >= 2;
-		bool bItsEx = parsed[0] == ">>" && parsed.length() >= 2;
+		if( sayTipe == CLIENTSAY_SAYTEAM ) uiFlags |= SAY_TEAM;
+		if( parsed[0] == "/me" && parsed.length() >= 2 ) uiFlags |= SAY_ME;
+		if( parsed[0] == ">>" && parsed.length() >= 2 ) uiFlags |= SAY_SPECIAL;
 
-		if( bItsMe || bItsEx )
+		if( bit_set( uiFlags, SAY_ME ) || bit_set( uiFlags, SAY_SPECIAL ) )
 		{
 			szMessage = "";
 			for( uint i = 1; i < parsed.length(); i++ )
@@ -365,8 +368,9 @@ final class CChatRoles
 			}
 		}
 
-		if( b4Team )
+		if( bit_set( uiFlags, SAY_TEAM ) )
 		{
+			const int iClass = pPlayer.Classify();
 			if( iClass >= 16 && iClass <= 19 )
 			{
 				for( int i = 1; i <= g_Engine.maxClients; i++ )
@@ -378,22 +382,22 @@ final class CChatRoles
 					if( pTarget.Classify() != iClass )
 						continue;
 
-					if( bItsEx )
+					if( bit_set( uiFlags, SAY_SPECIAL ) )
 					{
 						if( string(m_playerRoles[auth_id(pPlayer)]) != string(m_playerRoles[auth_id(pTarget)]) )
 							continue;
 
-						g_PlayerFuncs.SayText( pTarget, ">> (TEAM) [" + string(m_playerRoles[auth_id(pPlayer)]) + "] " + szNetname + ": " + szMessage + "\n" );
+						g_PlayerFuncs.SayText( pTarget, ">> (TEAM) [" + string(m_playerRoles[auth_id(pPlayer)]) + "] " + pPlayer.pev.netname + ": " + szMessage + "\n" );
 					}
 					else
-						g_PlayerFuncs.SayText( pTarget, (bItsMe ? "* (TEAM) [" : "(TEAM) [") + string(m_playerRoles[auth_id(pPlayer)]) + "] " + szNetname + (bItsMe ? " " : ": ") + szMessage + "\n" );
+						g_PlayerFuncs.SayText( pTarget, (bit_set( uiFlags, SAY_ME ) ? "* (TEAM) [" : "(TEAM) [") + string(m_playerRoles[auth_id(pPlayer)]) + "] " + pPlayer.pev.netname + (bit_set( uiFlags, SAY_ME ) ? " " : ": ") + szMessage + "\n" );
 				}
 			}
 			else
-				SayWithRole( pPlayer, b4Team, bItsEx, bItsMe, szMessage );
+				SayWithRole( pPlayer, uiFlags, szMessage );
 		}
 		else
-			SayWithRole( pPlayer, b4Team, bItsEx, bItsMe, szMessage );
+			SayWithRole( pPlayer, uiFlags, szMessage );
 	}
 
 	HookReturnCode ClientSay( SayParameters@ pParams )
@@ -415,6 +419,11 @@ final class CChatRoles
 			return HOOK_HANDLED;
 		}
 		return HOOK_CONTINUE;
+	}
+
+	private bool bit_set( uint8 a , uint8 b )
+	{
+		return a & b != 0;
 	}
 
 	private string auth_id( CBasePlayer@ plr )
