@@ -7,7 +7,7 @@
 		"name" "ChatRoles"
 		"script" "ChatRoles"
 	}
-	* NOTE: I recommend that this plugin be the last one in the archive "default_plugins.txt" to avoid problems with chat commands from other plugins.
+ * NOTE: I recommend that this plugin be the last one in the archive "default_plugins.txt" to avoid problems with chat commands from other plugins.
 ***/
 
 ChatRoles::CChatRoles@ g_ChatRoles = @ChatRoles::CChatRoles();
