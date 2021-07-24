@@ -12,6 +12,11 @@
   1. Don't need to load sounds on the server when using the spk command.
   2. Clients will load sounds on-demand as long as the files exist for them.
   3. This speeds up loading time since sounds normally load all at once on join.
+ ** HOW TO CONVERT MY SOUNDS TO THIS CONFIGURATION: ( w/ "Audacity" )
+  1. Open Audacity and load your sound to be converted (File>Import>Audio, File>Open or simply drag the file into the program).
+  2. Most likely your sound is stereo, so you will need to convert it to mono (Tracks>Mix>Mix Stereo to Mono).
+  3. Now you will need to resample your sound to one of the supported frequencies, preferably 22050Hz (Tracks>Resample...>Select or type 22050 and press OK).
+  4. Finally you will have to export your sound as WAV 8-bit PCM (File>Export>Export as WAV, in "Save as Type" it should be: WAV (Microsoft), below in "Encoding" select: Unsigned 8-bit PCM and press Save).
  * INSTALLATION: Add the following lines to "default_plugins.txt":
 	"plugin"
 	{
@@ -29,13 +34,13 @@ const array<string> m_sprite = {
 };
 const string szFilePath = "scripts/plugins/store/ChatSounds.txt";
 
-CClientCommand _help( "cshelp", "Shows you the available commands", @ClientCommandCallback( @g_ChatSounds.ClientCommand ) );
-CClientCommand _listsounds( "listsounds", "List all ChatSounds", @ClientCommandCallback( @g_ChatSounds.ClientCommand ) );
-CClientCommand _stop( "stop", "Stop current ChatSounds in playback", @ClientCommandCallback( @g_ChatSounds.ClientCommand ) );
-CClientCommand _volume( "csvolume", "Sets your volume at which your ChatSounds play <10-100> (def: 60)", @ClientCommandCallback( @g_ChatSounds.ClientCommand ) );
-CClientCommand _pitch( "cspitch", "Sets the pitch at which your ChatSounds play <25-255> (def: 100)", @ClientCommandCallback( @g_ChatSounds.ClientCommand ) );
-CClientCommand _mute( "csmute", "Stop playing ChatSounds <on-off> (def: off)", @ClientCommandCallback( @g_ChatSounds.ClientCommand ) );
-CClientCommand _forcemute( "csforcemute", "Force mute on <target> (steamid or nickname)", @ClientCommandCallback( @g_ChatSounds.ClientCommand ), ConCommandFlag::AdminOnly );
+CClientCommand _help( "cshelp", "Shows you the available commands", ClientCommandCallback( g_ChatSounds.ClientCommand ) );
+CClientCommand _listsounds( "listsounds", "List all ChatSounds", ClientCommandCallback( g_ChatSounds.ClientCommand ) );
+CClientCommand _stop( "stop", "Stop current ChatSounds in playback", ClientCommandCallback( g_ChatSounds.ClientCommand ) );
+CClientCommand _volume( "csvolume", "Sets your volume at which your ChatSounds play <10-100> (def: 60)", ClientCommandCallback( g_ChatSounds.ClientCommand ) );
+CClientCommand _pitch( "cspitch", "Sets the pitch at which your ChatSounds play <25-255> (def: 100)", ClientCommandCallback( g_ChatSounds.ClientCommand ) );
+CClientCommand _mute( "csmute", "Stop playing ChatSounds <on-off> (def: off)", ClientCommandCallback( g_ChatSounds.ClientCommand ) );
+CClientCommand _forcemute( "csforcemute", "Force mute on <target> (steamid or nickname)", ClientCommandCallback( g_ChatSounds.ClientCommand ), ConCommandFlag::AdminOnly );
 
 void PluginInit()
 {
@@ -77,14 +82,14 @@ final class CChatSounds
 
 	void OnInit()
 	{
-		g_Hooks.RegisterHook( Hooks::Player::ClientSay, @ClientSayHook( this.ClientSay ) );
-		g_Hooks.RegisterHook( Hooks::Player::ClientPutInServer, @ClientPutInServerHook( this.ClientPutInServer ) );
-		g_Hooks.RegisterHook( Hooks::Player::ClientDisconnect, @ClientDisconnectHook( this.ClientDisconnect ) );
+		g_Hooks.RegisterHook( Hooks::Player::ClientSay, ClientSayHook( this.ClientSay ) );
+		g_Hooks.RegisterHook( Hooks::Player::ClientPutInServer, ClientPutInServerHook( this.ClientPutInServer ) );
+		g_Hooks.RegisterHook( Hooks::Player::ClientDisconnect, ClientDisconnectHook( this.ClientDisconnect ) );
 
 		if( g_BaseDelay is null || g_DelayVariance is null )
 		{
-			@g_BaseDelay = CCVar( "basedelay", 3.3f, "This will be the default basedelay", ConCommandFlag::AdminOnly, @CVarCallback( this.CVar ) ); // as_command cs.defaultdelay
-			@g_DelayVariance = CCVar( "delayvariance", 0.6f, "Adds or subtracts time to the basedelay when joining or leaving the server respectively", ConCommandFlag::AdminOnly, @CVarCallback( this.CVar ) ); // as_command cs.delayvariance
+			@g_BaseDelay = CCVar( "basedelay", 3.3f, "This will be the default basedelay", ConCommandFlag::AdminOnly, CVarCallback( this.CVar ) ); // as_command cs.basedelay
+			@g_DelayVariance = CCVar( "delayvariance", 0.6f, "Adds or subtracts time to the basedelay when joining or leaving the server respectively", ConCommandFlag::AdminOnly, CVarCallback( this.CVar ) ); // as_command cs.delayvariance
 		}
 
 		ReadSounds();
@@ -93,9 +98,9 @@ final class CChatSounds
 
 	void OnExit()
 	{
-		g_Hooks.RemoveHook( Hooks::Player::ClientSay, @ClientSayHook( this.ClientSay ) );
-		g_Hooks.RemoveHook( Hooks::Player::ClientPutInServer, @ClientPutInServerHook( this.ClientPutInServer ) );
-		g_Hooks.RemoveHook( Hooks::Player::ClientDisconnect, @ClientDisconnectHook( this.ClientDisconnect ) );
+		g_Hooks.RemoveHook( Hooks::Player::ClientSay, ClientSayHook( this.ClientSay ) );
+		g_Hooks.RemoveHook( Hooks::Player::ClientPutInServer, ClientPutInServerHook( this.ClientPutInServer ) );
+		g_Hooks.RemoveHook( Hooks::Player::ClientDisconnect, ClientDisconnectHook( this.ClientDisconnect ) );
 
 		m_saveData.deleteAll();
 		m_listSound.deleteAll();
