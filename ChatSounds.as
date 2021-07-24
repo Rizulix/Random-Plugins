@@ -506,8 +506,8 @@ final class CChatSounds
 			}
 			else
 			{
-				int i = Math.RandomLong(0,m_sprite.length()-1);
-				pPlayer.ShowOverheadSprite( m_sprite[i], 56.0f, 2.25f );
+				if( m_sprite.length() > 0 )
+					pPlayer.ShowOverheadSprite( m_sprite[Math.RandomLong(0,m_sprite.length()-1)], 56.0f, 2.25f );
 				Speak( string(m_listSound[szFirstArg]), pSounds.m_uiPitch, pSounds.m_uiVolume );
 				pSounds.m_flNextChatSounds = g_Engine.time + m_flChatSoundsDelay;
 				return HOOK_HANDLED;
