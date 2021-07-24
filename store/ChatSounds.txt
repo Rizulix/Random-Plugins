@@ -1,4 +1,10 @@
 // Format:
 // Keyword Filepath (only wav files)
+// Make sure your sounds are inside a folder to be reached by the plugin
 // Example:
+// someword mychatsoundsfolder/myfile.wav
 // meedic tfc/speech/saveme2.wav
+// knifed player/knifed.wav
+// Incorrect:
+// meedic sounds/tfc/speech/saveme2.wav
+// meedic svencoop/sounds/tfc/speech/saveme2.wav
