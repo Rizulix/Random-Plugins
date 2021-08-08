@@ -1,10 +1,16 @@
-// Format:
-// Keyword Filepath (only wav files)
-// Make sure your sounds are inside a folder to be reached by the plugin
-// Example:
+// * FORMAT:
+// keyword filepath (only wav files)
+// - Make sure your sounds are inside a folder to be reached by the plugin
+// > Example:
 // someword mychatsoundsfolder/myfile.wav
 // meedic tfc/speech/saveme2.wav
 // knifed player/knifed.wav
-// Incorrect:
+// > Incorrect:
 // meedic sounds/tfc/speech/saveme2.wav
 // meedic svencoop/sounds/tfc/speech/saveme2.wav
+// * ALIAS:
+// To link one keyword to another, just add * to the beginning of the keyword to link
+// > Example:
+// medic *meedic
+// stabbed *knifed
+// - Make sure that the keyword to link exists
