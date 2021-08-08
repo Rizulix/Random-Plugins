@@ -68,16 +68,18 @@ final class CChatSounds
 	private CCVar@ g_BaseDelay;
 	private CCVar@ g_DelayVariance;
 
-	private dictionary m_saveData;
-	private dictionary m_listSound;
+	private array<string> m_playerID;
+	private array<CChatSounds@> m_playerData;
 
-	private array<string> @m_soundKey;
+	private array<string> m_soundKey;
+	private array<string> m_soundFile;
 
-	private bool m_bMuted;
-	private bool m_bForcedMute;
-	private uint m_uiPitch;
-	private uint m_uiVolume;
-	private float m_flNextChatSounds;
+	private bool m_bMuted = false;
+	private bool m_bForcedMute = false;
+	private uint8 m_uiPitch = 100;
+	private uint8 m_uiVolume = 60;
+	private float m_flNextChatSounds = 0.0f;
+
 	private float m_flChatSoundsDelay;
 
 	void OnInit()
@@ -88,11 +90,16 @@ final class CChatSounds
 
 		if( g_BaseDelay is null || g_DelayVariance is null )
 		{
-			@g_BaseDelay = CCVar( "basedelay", 3.3f, "This will be the default basedelay", ConCommandFlag::AdminOnly, CVarCallback( this.CVar ) ); // as_command cs.basedelay
+			@g_BaseDelay = CCVar( "basedelay", 3.3f, "This will be the default basedelay(i.e. at 0 players)", ConCommandFlag::AdminOnly, CVarCallback( this.CVar ) ); // as_command cs.basedelay
 			@g_DelayVariance = CCVar( "delayvariance", 0.6f, "Adds or subtracts time to the basedelay when joining or leaving the server respectively", ConCommandFlag::AdminOnly, CVarCallback( this.CVar ) ); // as_command cs.delayvariance
 		}
 
-		ReadSounds();
+		if( g_Engine.time > 3.1f )
+		{
+			ReadSounds();
+			g_PlayerFuncs.ClientPrintAll( HUD_PRINTTALK, "[ChatSounds] Plugin reloaded! New sounds(if any) will be distributed to the map change\n" );
+		}
+
 		GetDelay( m_flChatSoundsDelay );
 	}
 
@@ -102,15 +109,17 @@ final class CChatSounds
 		g_Hooks.RemoveHook( Hooks::Player::ClientPutInServer, ClientPutInServerHook( this.ClientPutInServer ) );
 		g_Hooks.RemoveHook( Hooks::Player::ClientDisconnect, ClientDisconnectHook( this.ClientDisconnect ) );
 
-		m_saveData.deleteAll();
-		m_listSound.deleteAll();
+		m_playerID.removeRange( 0, m_playerID.length() );
+		m_playerData.removeRange( 0, m_playerData.length() );
 
 		m_soundKey.removeRange( 0, m_soundKey.length() );
+		m_soundFile.removeRange( 0, m_soundFile.length() );
 	}
 
 	void Initialize()
 	{
-		m_listSound.deleteAll();
+		m_soundKey.removeRange( 0, m_soundKey.length() );
+		m_soundFile.removeRange( 0, m_soundFile.length() );
 
 		LoadSounds();
 
@@ -124,26 +133,59 @@ final class CChatSounds
 			return null;
 
 		string szAuthId = auth_id(pPlayer);
-		if( !m_saveData.exists( szAuthId ) )
+		if( m_playerID.find( szAuthId ) < 0 )
 		{
 			CChatSounds pSounds;
-			pSounds.m_bMuted = false;
-			pSounds.m_bForcedMute = false;
-			pSounds.m_uiPitch = 100;
-			pSounds.m_uiVolume = 60;
-			pSounds.m_flNextChatSounds = 0.0f;
-			m_saveData[szAuthId] = pSounds;
+			m_playerID.insertLast( szAuthId );
+			m_playerData.insertLast( pSounds );
 		}
-		return cast<CChatSounds@>( m_saveData[szAuthId] );
+		return @m_playerData[m_playerID.find(szAuthId)];
 	}
 
-	private void AddSounds( string szKey, string szFile )
+	private void AddSounds( array<string> @line )
 	{
-		szKey.ToLowercase();
-		if( m_listSound.exists( szKey ) )
+		line[0].ToLowercase();
+		if( m_soundKey.find( line[0] ) >= 0 )
+		{
+			m_soundFile[m_soundKey.find(line[0])] = line[1];
 			return;
+		}
 
-		m_listSound[szKey] = szFile;
+		m_soundKey.insertLast( line[0] );
+		m_soundFile.insertLast( line[1] );
+	}
+
+	private void SortAsc()
+	{
+		array<array<string>> temp;
+		for( uint i = 0; i < m_soundKey.length(); i++ )
+			temp.insertLast( { m_soundKey[i], m_soundFile[i] } );
+
+		m_soundKey.sortAsc();
+		for( uint j = 0; j < m_soundKey.length(); j++ )
+		{
+			for( uint k = 0; k < temp.size(); k++ )
+			{
+				if( temp[k][0] == m_soundKey[j] )
+					m_soundFile[j] = temp[k][1];
+			}
+		}
+	}
+
+	private void Aliases()
+	{
+		for( uint i = 0; i < m_soundFile.length(); i++ )
+		{
+			if( !m_soundFile[i].StartsWith("*") )
+				continue;
+
+			string soundfile = "";
+			m_soundFile[i].ToLowercase();
+			for( uint j = 1; j < m_soundFile[i].Length(); j++ ) // 'string::erase' method doesn't exist
+				soundfile += m_soundFile[i][j];
+
+			m_soundFile[i] = m_soundKey.find(soundfile);
+		}
 	}
 
 	private void ReadSounds()
@@ -166,11 +208,11 @@ final class CChatSounds
 			if( parsed.length() < 2 )
 				continue;
 
-			AddSounds( parsed[0], parsed[1] );
+			AddSounds( parsed );
 		}
 		pFile.Close();
-		@m_soundKey = m_listSound.getKeys();
-		m_soundKey.sortAsc();
+		SortAsc();
+		Aliases();
 	}
 
 	private void LoadSounds()
@@ -178,7 +220,12 @@ final class CChatSounds
 		ReadSounds();
 	
 		for( uint i = 0; i < m_soundKey.length(); ++i )
-			g_Game.PrecacheGeneric( "sound/" + string(m_listSound[m_soundKey[i]]) );
+		{
+			if( !m_soundFile[i].EndsWith(".wav") )
+				continue;
+
+			g_Game.PrecacheGeneric( "sound/" + m_soundFile[i] );
+		}
 	}
 
 	private void GetDelay( float& out flChatSoundsDelay )
@@ -458,7 +505,7 @@ final class CChatSounds
 		netmsg.End();
 	}
 
-	private void Speak( string szSound, uint uiPitch, uint uiVolume )
+	private void Speak( string szSound, uint8 uiPitch, uint8 uiVolume )
 	{
 		szSound = szSound.SubString(0,szSound.Find("."));
 		string szCommand = ";spk \"" + szSound + "(v" + uiVolume + " p" + uiPitch + ")\";";
@@ -482,8 +529,9 @@ final class CChatSounds
 		CBasePlayer@ pPlayer = pParams.GetPlayer();
 		const CCommand@ args = pParams.GetArguments();
 		const string szFirstArg = args.Arg(0).ToLowercase();
+		const int iSoundIndex = m_soundKey.find( szFirstArg );
 
-		if( args.ArgC() == 1 && m_listSound.exists( szFirstArg ) )
+		if( args.ArgC() == 1 && iSoundIndex >= 0 )
 		{
 			CChatSounds@ pSounds = GetConfig( pPlayer );
 
@@ -506,9 +554,23 @@ final class CChatSounds
 			}
 			else
 			{
+				if( !m_soundFile[iSoundIndex].EndsWith(".wav") )
+				{
+					if( atoi(m_soundFile[iSoundIndex]) < 0 )
+					{
+						pParams.ShouldHide = true;
+						g_PlayerFuncs.SayText( pPlayer, "[ChatSounds] Oh no! Something went wrong...\n" );
+						return HOOK_HANDLED;
+					}
+					else
+						Speak( m_soundFile[atoi(m_soundFile[iSoundIndex])], pSounds.m_uiPitch, pSounds.m_uiVolume );
+				}
+				else
+					Speak( m_soundFile[iSoundIndex], pSounds.m_uiPitch, pSounds.m_uiVolume );
+
 				if( m_sprite.length() > 0 )
 					pPlayer.ShowOverheadSprite( m_sprite[Math.RandomLong(0,m_sprite.length()-1)], 56.0f, 2.25f );
-				Speak( string(m_listSound[szFirstArg]), pSounds.m_uiPitch, pSounds.m_uiVolume );
+
 				pSounds.m_flNextChatSounds = g_Engine.time + m_flChatSoundsDelay;
 				return HOOK_HANDLED;
 			}
