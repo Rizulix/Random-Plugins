@@ -1,6 +1,6 @@
 /***
  * BASED ON:
-  incognico's ChatSounds
+  incognico's old ChatSounds
  * REFERENCES FROM:
   KernCore's BuyMenu - BuyMenuCVARS
   Zode's AFBUtil - GetTargetPlayers
